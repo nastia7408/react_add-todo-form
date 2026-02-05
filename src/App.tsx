@@ -2,10 +2,10 @@ import './App.scss';
 import usersFromServer from './api/users';
 import todosFromServer from './api/todos';
 import { TodoList } from './components/TodoList';
-import { useState } from 'react';
-import { Todoes } from './types/Todos';
+import React, { useState } from 'react';
+import { Todo } from './types/Todos';
 
-function getTodoId(todos: Todoes[]) {
+function getTodoId(todos: Todo[]) {
   if (todos.length === 0) {
     return 1;
   }
@@ -15,9 +15,15 @@ function getTodoId(todos: Todoes[]) {
   return maxId + 1;
 }
 
-export const App = () => {
-  const [todos, setTodos] = useState<Todoes[]>(todosFromServer);
+export const App: React.FC = () => {
   const [users] = useState(usersFromServer);
+
+  const preparedTodos: Todo[] = todosFromServer.map(todo => ({
+    ...todo,
+    user: users.find(u => u.id === todo.userId)!,
+  }));
+
+  const [todos, setTodos] = useState<Todo[]>(preparedTodos);
 
   const [text, setText] = useState('');
   const [selectUser, setSelectUser] = useState(0);
@@ -34,19 +40,24 @@ export const App = () => {
       return;
     }
 
-    const newTodo: Todoes = {
-      id: getTodoId(todos),
-      title: text.trim(),
-      userId: selectUser,
-      completed: false,
-    };
+    const currentUser = users.find(user => user.id === selectUser);
 
-    setTodos(current => [...current, newTodo]);
+    if (currentUser) {
+      const newTodo: Todo = {
+        id: getTodoId(todos),
+        title: text.trim(),
+        userId: selectUser,
+        completed: false,
+        user: currentUser,
+      };
 
-    setText('');
-    setSelectUser(0);
-    setIsErrorTitle(false);
-    setIsErrorSelect(false);
+      setTodos(current => [...current, newTodo]);
+
+      setText('');
+      setSelectUser(0);
+      setIsErrorTitle(false);
+      setIsErrorSelect(false);
+    }
   };
 
   return (
@@ -102,7 +113,7 @@ export const App = () => {
         </button>
       </form>
 
-      <TodoList todos={todos} users={users} />
+      <TodoList todos={todos} />
     </div>
   );
 };
