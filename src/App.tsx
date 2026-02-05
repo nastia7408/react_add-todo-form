@@ -20,7 +20,7 @@ export const App: React.FC = () => {
 
   const preparedTodos: Todo[] = todosFromServer.map(todo => ({
     ...todo,
-    user: users.find(u => u.id === todo.userId)!,
+    user: users.find(user => user.id === todo.userId)!,
   }));
 
   const [todos, setTodos] = useState<Todo[]>(preparedTodos);
